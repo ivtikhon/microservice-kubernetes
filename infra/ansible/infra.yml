@@ -6,59 +6,52 @@
 #   - ssh_private_key_path
 #   - ssh_key_name
 
-- name: Create VPC
-  hosts: localhost
-  vars:
-    eks_cluster_name: dev_eks
-  roles:
-    - vpc
+# - name: Create VPC
+#   hosts: localhost
+#   vars:
+#     eks_cluster_name: dev_eks
+#   roles:
+#     - vpc
 
-- name: Launch Deployment server
-  hosts: localhost
-  vars:
-    deployment_security_group: public-ssh
-    deployment_subnet_id: "{{hostvars['localhost']['deployment_subnet_id']}}"
-    codedeploy_application_name: 'microservice'
-    codedeploy_deployment_group_name: 'deployment-server'
-  roles:
-    - codedeploy
-  post_tasks:
-    - name: Add Deployment server to deployment group
-      add_host:
-        name: deployment_server
-        groups: deployment
-        ansible_host: "{{hostvars['localhost']['deployment_server_ip_address']}}"
-        ansible_user: 'ubuntu'
-        ansible_ssh_private_key_file: "{{ssh_private_key_path}}"
-        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+# - name: Launch Deployment server
+#   hosts: localhost
+#   vars:
+#     deployment_security_group: public-ssh
+#     deployment_subnet_id: "{{hostvars['localhost']['deployment_subnet_id']}}"
+#     codedeploy_application_name: 'microservice'
+#     codedeploy_deployment_group_name: 'deployment-server'
+#   roles:
+#     - codedeploy
+#   post_tasks:
+#     - name: Add Deployment server to deployment group
+#       add_host:
+#         name: deployment_server
+#         groups: deployment
+#         ansible_host: "{{hostvars['localhost']['deployment_server_ip_address']}}"
+#         ansible_user: 'ubuntu'
+#         ansible_ssh_private_key_file: "{{ssh_private_key_path}}"
+#         ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 
-- name: Create EKS cluster and worker nodes
-  hosts: localhost
-  vars:
-    vpc_id: "{{hostvars['localhost']['vpc_id']}}"
-    eks_subnet_ids: "{{hostvars['localhost']['private_subnet_ids']}}"
-    eks_cluster_name: dev_eks
-    eks_create: true
-  roles:
-    - eks
+# - name: Create EKS cluster and worker nodes
+#   hosts: localhost
+#   vars:
+#     vpc_id: "{{hostvars['localhost']['vpc_id']}}"
+#     eks_subnet_ids: "{{hostvars['localhost']['private_subnet_ids']}}"
+#     eks_cluster_name: dev_eks
+#     eks_create: true
+#   roles:
+#     - eks
 
-- name: Configure access to EKS from Deployment server
-  hosts: deployment
-  vars:
-    eks_configure: true
-    eks_certificate_authority_data: "{{hostvars['localhost']['eks_certificate_authority_data']}}"
-    eks_server: "{{hostvars['localhost']['eks_server']}}"
-    eks_node_role_arn: "{{hostvars['localhost']['eks_node_role_arn']}}"
-    deployment_server_role_arn: "{{hostvars['localhost']['deployment_server_role_arn']}}"
-  roles:
-    - eks
-
-- name: Create Codecommit repository
-  hosts: localhost
-  vars:
-    codecommit_repo_name: '{{git_repo_path | basename}}'
-  roles:
-    - codecommit
+# - name: Configure access to EKS from Deployment server
+#   hosts: deployment
+#   vars:
+#     eks_configure: true
+#     eks_certificate_authority_data: "{{hostvars['localhost']['eks_certificate_authority_data']}}"
+#     eks_server: "{{hostvars['localhost']['eks_server']}}"
+#     eks_node_role_arn: "{{hostvars['localhost']['eks_node_role_arn']}}"
+#     deployment_server_role_arn: "{{hostvars['localhost']['deployment_server_role_arn']}}"
+#   roles:
+#     - eks
 
 - name: Create CodeBuild project to build Spring app
   hosts: localhost
@@ -72,9 +65,10 @@
 - name: Create CodeBuild project to build Docker containers
   hosts: localhost
   vars:
-    ecr_repository_uri: "{{hostvars['localhost']['ecr_repository_uri']}}"
+    # ecr_repository_uri: "{{hostvars['localhost']['ecr_repository_uri']}}"
+    ecr_repository_uri: 718067358621.dkr.ecr.us-east-1.amazonaws.com/microservices-demo
     aws_account_id: "{{hostvars['localhost']['aws_account_id']}}"
-    codebuild_project_name: 'microservice-containers'
+    codebuild_project_name: 'microservice-container'
     codebuild_project_description: 'Build Microservice Demo containers'
     codebuild_role_policies: 'arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser'
     codebuild_privileged_mode: true
@@ -85,7 +79,9 @@
 - name: Create CodePipeline
   hosts: localhost
   vars:
-    codecommit_repo_name: '{{git_repo_path | basename}}'
+    source_repo_name: "{{git_repo_path | urlsplit('path') | basename | regex_replace('.git')}}"
+    source_repo_owner: "{{git_repo_path | urlsplit('path') | dirname | regex_replace('/')}}"
+    source_repo_token: '{{git_token}}'
     codebuild_build_project: 'microservice-spring'
     codebuild_container_project: 'microservice-container'
     codedeploy_application_name: 'microservice'

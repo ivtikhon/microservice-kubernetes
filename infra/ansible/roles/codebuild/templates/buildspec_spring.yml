@@ -2,16 +2,15 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      java: openjdk8
+      java: openjdk11
   build:
     commands:
-      - cd microservice-kubernetes
-      - mvn package
+      - cd microservice-kubernetes/microservice-kubernetes-demo
+      - mvn clean package
 artifacts:
   files:
-    - microservice-kubernetes/microservice-kubernetes-demo/...UPDATE ME .../target/spring-0.0.1-SNAPSHOT.jar
-    - docker/Dockerfile
-    - scripts/deploy_app.sh
-    - k8s/microservices.yml
-    - appspec.yml
-  discard-paths: yes
+    - '*/*/target/*-0.0.1-SNAPSHOT.jar'
+    - '*/*/Dockerfile'
+    # - appspec.yml
+  base-directory: microservice-kubernetes
+  discard-paths: no

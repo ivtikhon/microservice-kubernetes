@@ -61,15 +61,17 @@
           - name: Source
             actionTypeId:
               category: Source
-              owner: AWS
-              provider: CodeCommit
+              owner: ThirdParty
+              provider: GitHub
               version: '1'
             outputArtifacts:
               - { name: SourceArtifact }
             configuration:
-              PollForSourceChanges: "true"
-              BranchName: "master"
-              RepositoryName: '{{codecommit_repo_name}}'
+              PollForSourceChanges: "false"
+              Branch: "master"
+              Repo: '{{source_repo_name}}'
+              Owner: '{{source_repo_owner}}'
+              OAuthToken: '{{source_repo_token}}'
             runOrder: 1
       - name: Build
         actions:
