@@ -6,7 +6,7 @@ eks_role_policies:
   - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
   - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
 eks_node_type: t2.medium
-ecr_repository: notejam
+ecr_repository: microservice
 
 aws_auth_configmap: aws-auth-cm.yaml
 deployment_admin_definition: service-account.yml

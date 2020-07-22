@@ -1,4 +1,4 @@
 ---
-codepipeline_role_name: 'codepipeline-role-notejam'
-codepipeline_policy_name: 'codepipeline-policy-notejam'
-codepipeline_name: 'codepipeline-notejam'
+codepipeline_role_name: 'codepipeline-role-microservice'
+codepipeline_policy_name: 'codepipeline-policy-microservice'
+codepipeline_name: 'codepipeline-microservice'

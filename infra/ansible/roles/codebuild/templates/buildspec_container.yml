@@ -18,9 +18,9 @@ phases:
     commands:
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - envsubst < notejam.yml > notejam_deployment.yml
+      - envsubst < microservice.yml > microservice_deployment.yml
 artifacts:
   files:
     - deploy_app.sh
-    - notejam_deployment.yml
+    - micriservice_deployment.yml
     - appspec.yml

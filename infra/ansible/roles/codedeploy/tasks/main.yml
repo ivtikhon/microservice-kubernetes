@@ -77,7 +77,7 @@
 
 - name: Create CodeDeploy Application and Deployment Group
   cloudformation:
-    stack_name: "codedeploy-notejam"
+    stack_name: "codedeploy-microservice"
     state: present
     disable_rollback: true
     template_body: "{{lookup('file', 'codedeploy_cf.yml')}}"
