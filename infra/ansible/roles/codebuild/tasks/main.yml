@@ -1,0 +1,61 @@
+---
+- name: Create Codebuild IAM role
+  iam_role:
+    name: '{{codebuild_role_name}}'
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+    state: present
+    assume_role_policy_document: "{{lookup('file','codebuild_trust_policy.json')}}"
+    managed_policies: '{{codebuild_role_policies}}'
+  register: codebuild_role
+
+- name: Get the current caller identity facts
+  aws_caller_facts:
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+  register: caller_facts
+
+- name: AWS account ID
+  set_fact:
+    aws_account_id: '{{caller_facts.account}}'
+
+- name: Create Codebuild IAM policy and attach it to the Codebuild IAM role
+  iam_policy:
+    iam_name: '{{codebuild_role_name}}'
+    iam_type: role
+    policy_name: '{{codebuild_policy_name}}'
+    policy_json: "{{lookup('template', 'codebuild_policy.json.j2')}}"
+    state: present
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+  register: codebuild_policy
+
+- name: Sleep for 15 seconds allowing IAM role to become available
+  wait_for:
+    timeout: 15
+  when: codebuild_policy.changed or codebuild_role.changed
+
+- name: Create Codebuild project
+  aws_codebuild:
+    name: '{{codebuild_project_name}}'
+    description: '{{codebuild_project_description}}'
+    service_role: '{{codebuild_role_name}}'
+    source:
+        type: CODEPIPELINE
+        buildspec: "{{lookup('template', codebuild_buildspec_file)}}"
+    artifacts:
+        namespace_type: NONE
+        packaging: NONE
+        type: CODEPIPELINE
+    environment:
+        compute_type: BUILD_GENERAL1_SMALL
+        image: "aws/codebuild/standard:2.0"
+        type: LINUX_CONTAINER
+        privileged_mode: '{{codebuild_privileged_mode}}'
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+    state: present
+  register: codebuild_project

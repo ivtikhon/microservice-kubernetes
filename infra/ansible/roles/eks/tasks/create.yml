@@ -1,0 +1,85 @@
+---
+- name: Create EKS IAM role
+  iam_role:
+    name: '{{eks_role_name}}'
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+    state: present
+    assume_role_policy_document: "{{lookup('file','eks_trust_policy.json')}}"
+    managed_policies: '{{eks_role_policies}}'
+  register: eks_role
+
+- name: Create EKS security group
+  ec2_group:
+    name: '{{eks_sg_name}}'
+    description: 'EKS security group'
+    vpc_id: '{{vpc_id}}'
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+  register: eks_sg
+
+- name: Sleep for 15 seconds allowing IAM role to become available
+  wait_for:
+    timeout: 15
+  when: eks_role.changed
+
+- name: Create EKS cluster
+  aws_eks_cluster:
+    name: '{{eks_cluster_name}}'
+    version: '{{eks_cluster_version}}'
+    role_arn: '{{eks_role.arn}}'
+    subnets: '{{eks_subnet_ids}}'
+    security_groups: '{{eks_sg_name}}'
+    wait: yes
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+  register: eks_cluster
+
+- name: EKS facts
+  set_fact:
+    eks_certificate_authority_data: '{{eks_cluster.certificate_authority.data}}'
+    eks_server: '{{eks_cluster.endpoint}}'
+
+- name: Create ECR repository
+  ecs_ecr:
+    name: '{{ecr_repository}}'
+    state: present
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+  register: ecr_repo
+
+- name: ECR URI
+  set_fact:
+    ecr_repository_uri: '{{ecr_repo.repository.repositoryUri}}'
+
+- name: Launch Worker nodes
+  cloudformation:
+    stack_name: "eks-worker-nodes"
+    state: present
+    disable_rollback: true
+    template_body: "{{lookup('file', 'amazon-eks-nodegroup.yml')}}"
+    template_parameters:
+      ClusterName: '{{eks_cluster_name}}'
+      ClusterControlPlaneSecurityGroup: '{{eks_sg.group_id}}'
+      NodeGroupName: '{{eks_nodegroup_name}}'
+      NodeAutoScalingGroupMinSize: 2
+      NodeAutoScalingGroupDesiredCapacity: 2
+      NodeAutoScalingGroupMaxSize: 3
+      NodeInstanceType: '{{eks_node_type}}'
+      NodeImageId: '{{eks_ami_id}}'
+      NodeVolumeSize: 20
+      KeyName: '{{ssh_key_name}}'
+      VpcId: '{{vpc_id}}'
+      Subnets: "{{eks_subnet_ids | join(',')}}"
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+  register: eks_nodes
+
+- name: EKS Worker nodes role
+  set_fact:
+    eks_node_role_arn: '{{eks_nodes.stack_outputs.NodeInstanceRole}}'

@@ -1,0 +1,7 @@
+---
+aws_region: 'us-east-1'
+codebuild_project_name: 'Notejam'
+codebuild_project_description: 'Notejam project'
+codebuild_buildspec: buildspec.yml
+codebuild_role_policies: []
+codebuild_privileged_mode: false

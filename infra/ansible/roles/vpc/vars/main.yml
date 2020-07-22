@@ -1,0 +1,49 @@
+vpc_cidr_block: '192.168.0.0/16'
+
+# One public and two private subnets
+vpc_subnets:
+  private:
+    - name: dev_private_a
+      cidr: 192.168.1.0/24
+      az: '{{aws_region}}a'
+      tags:
+        - ['Name', 'dev_private_a']
+        - ['kubernetes.io/cluster/{{eks_cluster_name}}', 'shared']
+    - name: dev_private_b
+      cidr: 192.168.3.0/24
+      az: '{{aws_region}}b'
+      tags:
+        - ['Name', 'dev_private_b']
+        - ['kubernetes.io/cluster/{{eks_cluster_name}}', 'shared']
+  public:
+    - name: dev_public_a
+      cidr: 192.168.2.0/24
+      az: '{{aws_region}}a'
+      tags:
+        - ['Name', 'dev_public_a']
+        - ['kubernetes.io/cluster/{{eks_cluster_name}}', 'shared']
+        - ['kubernetes.io/role/elb', 1]
+
+vpc_security_groups:
+  - name: internal-traffic
+    description: "Internal traffic"
+    rules:
+      - proto: all
+        group_name: internal-traffic
+        ports: 0 - 65535
+  - name: public-ssh
+    description: "Public SSH access"
+    rules:
+      - proto: tcp
+        cidr_ip: 0.0.0.0/0
+        ports:
+          - 22
+  - name: public-http
+    description: "Public web traffic"
+    rules:
+      - proto: tcp
+        cidr_ip: 0.0.0.0/0
+        ports:
+          - 80
+          - 8080
+          - 443

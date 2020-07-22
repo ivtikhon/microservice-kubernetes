@@ -1,0 +1,123 @@
+---
+- name: Create VPC
+  ec2_vpc_net:
+    name: '{{vpc_name}}'
+    cidr_block: '{{vpc_cidr_block}}'
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+    state: present
+  register: vpc_net
+
+- name: VPC ID
+  set_fact:
+    vpc_id: '{{vpc_net.vpc.id}}'
+
+- name: Set public subnet tags
+  set_fact: {"{{item.0.name + '_tags'}}": "{{lookup('vars', item.0.name + '_tags', default={}) | combine({item.1.0: item.1.1})}}"}
+  with_subelements:
+    - '{{vpc_subnets.public}}'
+    - tags
+
+- name: Set private subnet tags
+  set_fact: {"{{item.0.name + '_tags'}}": "{{lookup('vars', item.0.name + '_tags', default={}) | combine({item.1.0: item.1.1})}}"}
+  with_subelements:
+    - '{{vpc_subnets.private}}'
+    - tags
+
+- name: Create public subnets
+  ec2_vpc_subnet:
+    vpc_id: '{{vpc_id}}'
+    region: '{{aws_region}}'
+    cidr: '{{item.cidr}}'
+    az: '{{item.az}}'
+    tags: "{{lookup('vars', item.name + '_tags')}}"
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+  with_items: '{{vpc_subnets.public}}'
+  register: public_subnets
+
+- name: Create private subnets
+  ec2_vpc_subnet:
+    vpc_id: '{{vpc_id}}'
+    region: '{{aws_region}}'
+    cidr: '{{item.cidr}}'
+    az: '{{item.az}}'
+    tags: "{{lookup('vars', item.name + '_tags')}}"
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+  with_items: '{{vpc_subnets.private}}'
+  register: private_subnets
+
+- name: Create internet gateway
+  ec2_vpc_igw:
+    vpc_id: '{{vpc_id}}'
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+  register: internet_gw
+
+- name: Public subnet for NAT gateway
+  set_fact:
+    nat_gw_subnet_id: '{{public_subnets.results[0].subnet.id}}'
+
+- name: Create NAT gateway
+  ec2_vpc_nat_gateway:
+    subnet_id: '{{nat_gw_subnet_id}}'
+    region: '{{aws_region}}'
+    wait: yes
+    if_exist_do_not_create: true
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+  register: nat_gw
+
+- name: IDs of public subnets
+  set_fact:
+    public_subnet_ids: '{{public_subnet_ids | default([]) + [item.subnet.id]}}'
+  loop: '{{public_subnets.results}}'
+
+- name: IDs of private subnets
+  set_fact:
+    private_subnet_ids: '{{private_subnet_ids | default([]) + [item.subnet.id]}}'
+  loop: '{{private_subnets.results}}'
+
+- name: Create public routing
+  ec2_vpc_route_table:
+    vpc_id: '{{vpc_id}}'
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+    subnets: '{{public_subnet_ids}}'
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: '{{internet_gw.gateway_id}}'
+    tags:
+      Name: '{{vpc_name}}_public'
+
+- name: Create private routing
+  ec2_vpc_route_table:
+    vpc_id: '{{vpc_id}}'
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+    subnets: '{{private_subnet_ids}}'
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: '{{nat_gw.nat_gateway_id}}'
+    tags:
+      Name: '{{vpc_name}}_private'
+
+- name: Subnet ID for Deployment server
+  set_fact:
+    deployment_subnet_id: '{{public_subnets.results[0].subnet.id}}'
+
+- name: Create security groups
+  ec2_group:
+    name: '{{item.name}}'
+    description: '{{item.description}}'
+    vpc_id: '{{vpc_id}}'
+    rules: '{{item.rules}}'
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+  loop: '{{vpc_security_groups}}'

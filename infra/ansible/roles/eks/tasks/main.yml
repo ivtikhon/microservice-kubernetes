@@ -1,0 +1,6 @@
+---
+- include_tasks: create.yml
+  when: eks_create | default(false) == true
+
+- include_tasks: configure.yml
+  when: eks_configure | default(false) == true

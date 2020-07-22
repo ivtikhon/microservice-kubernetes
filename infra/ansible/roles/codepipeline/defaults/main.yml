@@ -1,0 +1,3 @@
+---
+aws_region: 'us-east-1'
+codepipeline_s3_bucket_template: 'codepipeline-{{aws_region}}'

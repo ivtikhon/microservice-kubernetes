@@ -1,0 +1,119 @@
+---
+- name: Create Codepipeline IAM role
+  iam_role:
+    name: '{{codepipeline_role_name}}'
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+    state: present
+    assume_role_policy_document: "{{lookup('file','codepipeline_trust_policy.json')}}"
+  register: codepipeline_role
+
+- name: Create Codepipeline IAM policy and attach it to the Codepipeline IAM role
+  iam_policy:
+    iam_name: '{{codepipeline_role_name}}'
+    iam_type: role
+    policy_name: '{{codepipeline_policy_name}}'
+    policy_json: "{{lookup('file', 'codepipeline_policy.json')}}"
+    state: present
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+  register: codepipeline_policy
+
+- name: Sleep for 15 seconds allowing IAM role to become available
+  wait_for:
+    timeout: 15
+  when: codepipeline_policy.changed or codepipeline_role.changed
+
+- name: Get the current caller identity facts
+  aws_caller_facts:
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+  register: caller_facts
+
+- name: AWS account ID
+  set_fact:
+    aws_account_id: '{{caller_facts.account}}'
+
+- name: Codepipeline S3 bucket
+  set_fact:
+    codepipeline_s3_bucket: '{{codepipeline_s3_bucket_template}}-{{aws_account_id}}'
+
+- name: Create Codepipeline S3 bucket
+  s3_bucket:
+    name: '{{codepipeline_s3_bucket}}'
+    state: present
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+
+- name: Create CodePipeline
+  aws_codepipeline:
+    name: '{{codepipeline_name}}'
+    role_arn: '{{codepipeline_role.arn}}'
+    artifact_store:
+      type: S3
+      location: '{{codepipeline_s3_bucket}}'
+    stages:
+      - name: Source
+        actions:
+          - name: Source
+            actionTypeId:
+              category: Source
+              owner: AWS
+              provider: CodeCommit
+              version: '1'
+            outputArtifacts:
+              - { name: SourceArtifact }
+            configuration:
+              PollForSourceChanges: "true"
+              BranchName: "master"
+              RepositoryName: '{{codecommit_repo_name}}'
+            runOrder: 1
+      - name: Build
+        actions:
+          - name: BuildApp
+            actionTypeId:
+              category: Build
+              owner: AWS
+              provider: CodeBuild
+              version: '1'
+            inputArtifacts:
+              - { name: SourceArtifact }
+            outputArtifacts:
+              - { name: BuildArtifact }
+            configuration:
+              ProjectName: '{{codebuild_build_project}}'
+            runOrder: 1
+          - name: BuildDockerContainer
+            actionTypeId:
+              category: Build
+              owner: AWS
+              provider: CodeBuild
+              version: '1'
+            inputArtifacts:
+              - { name: BuildArtifact }
+            outputArtifacts:
+              - { name: DeployArtifact }
+            configuration:
+              ProjectName: '{{codebuild_container_project}}'
+            runOrder: 2
+      - name: Deploy
+        actions:
+          - name: Deploy
+            actionTypeId:
+              category: Deploy
+              owner: AWS
+              provider: CodeDeploy
+              version: '1'
+            inputArtifacts:
+              - { name: DeployArtifact }
+            configuration:
+              ApplicationName: '{{codedeploy_application_name}}'
+              DeploymentGroupName: '{{codedeploy_deployment_group_name}}'
+            runOrder: 1
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+    state: present

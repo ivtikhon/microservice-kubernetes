@@ -1,0 +1,55 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: CodeDeploy - Application and Deployment Group
+
+Parameters:
+  ApplicationName:
+    Description: CodeDeploy application name
+    Type: String
+
+  DeploymentGroupName:
+    Description: Deployment group name
+    Type: String
+
+  DeploymentConfigurationName:
+    Description: Deployment configuration name
+    Type: String
+    Default: CodeDeployDefault.OneAtATime
+
+Resources:
+  CodeDeployApplication:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ApplicationName: !Ref ApplicationName
+      ComputePlatform: Server
+
+  CodeDeployGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties:
+      ApplicationName: !Ref ApplicationName
+      DeploymentConfigName: !Ref DeploymentConfigurationName
+      DeploymentGroupName: !Ref DeploymentGroupName
+      Ec2TagFilters:
+        - Key: Name
+          Value: Deployment server
+          Type: KEY_AND_VALUE
+      ServiceRoleArn: !GetAtt CodeDeployRole.Arn
+
+  CodeDeployRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "codedeploy.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole
+
+Outputs:
+  CodeDeployRole:
+    Description: CodeDeploy role
+    Value: !GetAtt CodeDeployRole.Arn

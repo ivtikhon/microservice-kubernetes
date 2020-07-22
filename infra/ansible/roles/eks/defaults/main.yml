@@ -1,0 +1,5 @@
+---
+aws_region: 'us-east-1'
+eks_cluster_name: 'dev_eks'
+eks_cluster_version: "1.12"
+eks_ami_id: ami-0e380e0a62d368837

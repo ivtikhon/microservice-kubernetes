@@ -1,0 +1,4 @@
+---
+codepipeline_role_name: 'codepipeline-role-notejam'
+codepipeline_policy_name: 'codepipeline-policy-notejam'
+codepipeline_name: 'codepipeline-notejam'

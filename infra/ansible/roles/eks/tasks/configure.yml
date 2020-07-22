@@ -1,0 +1,50 @@
+---
+- name: HOME dir
+  set_fact:
+    home_dir: "{{lookup('env','HOME')}}"
+
+- name: KUBE_CONFIG
+  set_fact:
+    kube_config: '{{home_dir}}/.kube/config'
+
+- name: Create .kube directory
+  file:
+    path: '{{home_dir}}/.kube'
+    state: directory
+
+- name: Create kube config
+  template:
+    src: kube_config
+    dest: '{{kube_config}}'
+
+- name: Copy configuration files
+  copy:
+    src: '{{item}}'
+    dest: '{{home_dir}}/{{item}}'
+  with_items:
+    - '{{deployment_admin_definition}}'
+    - '{{storage_class_definition}}'
+
+- name: Copy aws-auth configmap
+  template:
+    src: '{{aws_auth_configmap}}'
+    dest: '{{home_dir}}/{{aws_auth_configmap}}'
+
+- name: Wait for AWS IAM authenticator
+  wait_for:
+    path: /usr/bin/aws-iam-authenticator
+    state: present
+    timeout: 300
+    sleep: 5
+
+- name: Apply configurations
+  shell: /usr/bin/kubectl apply -f '{{home_dir}}/{{item}}'
+  environment:
+    AWS_DEFAULT_REGION: '{{aws_region}}'
+    AWS_ACCESS_KEY_ID: '{{aws_access_key}}'
+    AWS_SECRET_ACCESS_KEY: '{{aws_secret_key}}'
+  register: kubectl_apply
+  with_items:
+    - '{{aws_auth_configmap}}'
+    - '{{deployment_admin_definition}}'
+    - '{{storage_class_definition}}'

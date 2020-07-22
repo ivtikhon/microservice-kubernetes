@@ -1,0 +1,90 @@
+---
+- name: Create Deployment Server IAM role
+  iam_role:
+    name: '{{deployment_server_role_name}}'
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+    state: present
+    assume_role_policy_document: "{{lookup('file','ec2_trust_policy.json')}}"
+  register: deployment_role
+
+- name: Create Deployment Server IAM policy and attach it to the Codebuild IAM role
+  iam_policy:
+    iam_name: '{{deployment_server_role_name}}'
+    iam_type: role
+    policy_name: '{{deployment_server_policy_name}}'
+    policy_json: "{{lookup('template', 'deployment_server_policy.json.j2')}}"
+    state: present
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+  register: deployment_policy
+
+- name: Sleep for 15 seconds allowing IAM role to become available
+  wait_for:
+    timeout: 15
+  when: deployment_role.changed or deployment_policy.changed
+
+- name: Get the List of AMIs by Name
+  ec2_ami_facts:
+    region: '{{aws_region}}'
+    owners: '{{aws_ami_owner}}'
+    filters:
+      name: '{{aws_ami_name}}*'
+      architecture: x86_64
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+  register: ec2_amis
+
+- name: Extract the Latest AMI from the List
+  set_fact:
+    ec2_ami_latest: "{{ec2_amis.images | sort(attribute='creation_date') | last}}"
+  failed_when: ec2_ami_latest.image_id is undefined
+
+- name: Create Deployment server
+  ec2_instance:
+    key_name: '{{ssh_key_name}}'
+    instance_type: '{{deployment_server_instance.instance_type}}'
+    image_id: "{{ec2_ami_latest.image_id}}"
+    wait: yes
+    vpc_subnet_id: '{{deployment_server_instance.subnet_id}}'
+    volumes:
+      - device_name: /dev/sda1
+        ebs:
+          volume_type: '{{disk_type}}'
+          volume_size: 10
+          delete_on_termination: true
+    name: '{{deployment_server_instance.name}}'
+    security_group: '{{deployment_server_instance.security_group}}'
+    region: "{{aws_region}}"
+    instance_role: '{{deployment_server_role_name}}'
+    user_data: '{{deployment_server_instance.user_data}}'
+    network:
+      assign_public_ip: true
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+  register: deployment_server
+
+- name: Deployment server ID and IP-address
+  set_fact:
+    deployment_server_id: '{{deployment_server.instances[0].instance_id}}'
+    deployment_server_ip_address: '{{deployment_server.instances[0].public_ip_address}}'
+    deployment_server_role_arn: '{{deployment_role.arn}}'
+
+- name: Wait for SSH to come up
+  wait_for: host='{{deployment_server_ip_address}}' port=22 delay=10  timeout=300
+
+- name: Create CodeDeploy Application and Deployment Group
+  cloudformation:
+    stack_name: "codedeploy-notejam"
+    state: present
+    disable_rollback: true
+    template_body: "{{lookup('file', 'codedeploy_cf.yml')}}"
+    template_parameters:
+      ApplicationName: '{{codedeploy_application_name}}'
+      DeploymentGroupName: '{{codedeploy_deployment_group_name}}'
+    region: '{{aws_region}}'
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+  register: codedeploy_app

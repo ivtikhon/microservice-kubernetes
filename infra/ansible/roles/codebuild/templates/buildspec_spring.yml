@@ -1,0 +1,17 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      java: openjdk8
+  build:
+    commands:
+      - cd notejam/spring
+      - mvn package
+artifacts:
+  files:
+    - notejam/spring/target/spring-0.0.1-SNAPSHOT.jar
+    - docker/Dockerfile
+    - scripts/deploy_app.sh
+    - k8s/notejam.yml
+    - appspec.yml
+  discard-paths: yes

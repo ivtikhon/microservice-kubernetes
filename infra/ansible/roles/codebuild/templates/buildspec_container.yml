@@ -1,0 +1,26 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+    commands:
+      - apt-get install -y gettext-base
+  pre_build:
+    commands:
+      - $(aws ecr get-login --region {{aws_region}} --no-include-email)
+      - REPOSITORY_URI={{ecr_repository_uri}}
+      - IMAGE_TAG=$(date '+%Y%m%d%H%M')
+  build:
+    commands:
+      - docker build --build-arg JAR_FILE=spring-0.0.1-SNAPSHOT.jar -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+  post_build:
+    commands:
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - envsubst < notejam.yml > notejam_deployment.yml
+artifacts:
+  files:
+    - deploy_app.sh
+    - notejam_deployment.yml
+    - appspec.yml
