@@ -66,7 +66,7 @@
   hosts: localhost
   vars:
     # ecr_repository_uri: "{{hostvars['localhost']['ecr_repository_uri']}}"
-    ecr_repository_uri: 718067358621.dkr.ecr.us-east-1.amazonaws.com/microservices-demo
+    container_registry: 718067358621.dkr.ecr.us-east-1.amazonaws.com
     aws_account_id: "{{hostvars['localhost']['aws_account_id']}}"
     codebuild_project_name: 'microservice-container'
     codebuild_project_description: 'Build Microservice Demo containers'
