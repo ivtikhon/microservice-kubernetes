@@ -18,7 +18,7 @@ spec:
         run: apache
     spec:
       containers:
-      - image: docker.io/ewolff/microservice-kubernetes-demo-apache:latest
+      - image: ${CONTAINER_REGISTRY}/apache:latest
         name: apache
         ports:
         - containerPort: 80
@@ -47,7 +47,7 @@ spec:
         run: catalog
     spec:
       containers:
-      - image: docker.io/ewolff/microservice-kubernetes-demo-catalog:latest
+      - image: ${CONTAINER_REGISTRY}/microservice-kubernetes-demo-catalog:latest
         name: catalog
         ports:
         - containerPort: 8080
@@ -76,7 +76,7 @@ spec:
         run: customer
     spec:
       containers:
-      - image: docker.io/ewolff/microservice-kubernetes-demo-customer:latest
+      - image: ${CONTAINER_REGISTRY}/microservice-kubernetes-demo-customer:latest
         name: customer
         ports:
         - containerPort: 8080
@@ -105,7 +105,7 @@ spec:
         run: order
     spec:
       containers:
-      - image: docker.io/ewolff/microservice-kubernetes-demo-order:latest
+      - image: ${CONTAINER_REGISTRY}/microservice-kubernetes-demo-order:latest
         name: order
         ports:
         - containerPort: 8080

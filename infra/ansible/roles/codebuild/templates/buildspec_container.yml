@@ -7,8 +7,9 @@ phases:
       - apt-get install -y gettext-base
   pre_build:
     commands:
-      - aws ecr get-login-password --region {{aws_region}} | docker login --username AWS --password-stdin {{container_registry}}
       - IMAGE_TAG=$(date '+%Y%m%d%H%M')
+      - CONTAINER_REGISTRY="{{container_registry}}"
+      - aws ecr get-login-password --region {{aws_region}} | docker login --username AWS --password-stdin
   build:
     commands:
       - >
@@ -16,19 +17,17 @@ phases:
         do
           cd $(dirname $dockerfile);
           DOCKER_IMAGE=$(echo $dockerfile | awk -F '/' '{print $(NF-1)}');
-          REPOSITORY_URI="{{container_registry}}/${DOCKER_IMAGE}"
+          REPOSITORY_URI="${CONTAINER_REGISTRY}/${DOCKER_IMAGE}";
           docker build -t ${REPOSITORY_URI}:latest .; 
           docker tag ${REPOSITORY_URI}:latest ${REPOSITORY_URI}:$IMAGE_TAG;
-          docker push ${REPOSITORY_URI}:latest
-          docker push $}REPOSITORY_URI}:$IMAGE_TAG
+          aws ecr describe-repositories --repository-names ${DOCKER_IMAGE} || aws ecr create-repository --repository-name ${DOCKER_IMAGE};
+          docker push ${REPOSITORY_URI}:latest;
+          docker push ${REPOSITORY_URI}:$IMAGE_TAG;
         done
   post_build:
     commands:
-      - docker images
-      - ls -l
-      # - docker push $REPOSITORY_URI:latest
-      # - docker push $REPOSITORY_URI:$IMAGE_TAG
-      # - envsubst < microservice.yml > microservice_deployment.yml
+      - cd ${CODEBUILD_SRC_DIR}
+      - envsubst < microservice-kubernetes-demo/microservices.yaml > microservice_deployment.yml
 artifacts:
   files:
     - microservices.yaml

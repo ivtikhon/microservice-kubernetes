@@ -70,7 +70,7 @@
     aws_account_id: "{{hostvars['localhost']['aws_account_id']}}"
     codebuild_project_name: 'microservice-container'
     codebuild_project_description: 'Build Microservice Demo containers'
-    codebuild_role_policies: 'arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser'
+    codebuild_role_policies: 'arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess'
     codebuild_privileged_mode: true
     codebuild_buildspec_file: buildspec_container.yml
   roles:
