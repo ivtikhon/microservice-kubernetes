@@ -11,6 +11,8 @@ artifacts:
   files:
     - '*/*/target/*-0.0.1-SNAPSHOT.jar'
     - '*/*/Dockerfile'
+    - '*/apache/000-default.conf'
+    - '*/apache/index.html'
     - 'microservice-kubernetes-demo/microservices.yaml'
     # - appspec.yml
   base-directory: microservice-kubernetes

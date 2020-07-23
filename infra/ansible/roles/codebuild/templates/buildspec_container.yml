@@ -11,8 +11,17 @@ phases:
       - IMAGE_TAG=$(date '+%Y%m%d%H%M')
   build:
     commands:
-      - for dockerfile in $(find . -name Dockerfile -exec realpath {} \;) do cd $(dirname $dockerfile); docker build -t $(echo $dockerfile | awk -F '/' '{print $(NF-1)}'):latest .; done
-      # - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+      - >
+        for dockerfile in $(find . -name Dockerfile -exec realpath {} \;); 
+        do
+          cd $(dirname $dockerfile);
+          DOCKER_IMAGE=$(echo $dockerfile | awk -F '/' '{print $(NF-1)}');
+          REPOSITORY_URI="{{container_registry}}/${DOCKER_IMAGE}"
+          docker build -t ${REPOSITORY_URI}:latest .; 
+          docker tag ${REPOSITORY_URI}:latest ${REPOSITORY_URI}:$IMAGE_TAG;
+          docker push ${REPOSITORY_URI}:latest
+          docker push $}REPOSITORY_URI}:$IMAGE_TAG
+        done
   post_build:
     commands:
       - docker images
@@ -22,6 +31,6 @@ phases:
       # - envsubst < microservice.yml > microservice_deployment.yml
 artifacts:
   files:
-    - microservices.yaml.yaml
+    - microservices.yaml
     # - deploy_app.sh
     # - appspec.yml
