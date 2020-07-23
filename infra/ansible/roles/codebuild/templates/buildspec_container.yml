@@ -9,7 +9,7 @@ phases:
     commands:
       - IMAGE_TAG=$(date '+%Y%m%d%H%M')
       - CONTAINER_REGISTRY="{{container_registry}}"
-      - aws ecr get-login-password --region {{aws_region}} | docker login --username AWS --password-stdin
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${CONTAINER_REGISTRY}
   build:
     commands:
       - >
@@ -27,7 +27,7 @@ phases:
   post_build:
     commands:
       - cd ${CODEBUILD_SRC_DIR}
-      - envsubst < microservice-kubernetes-demo/microservices.yaml > microservice_deployment.yml
+      - envsubst < microservice-kubernetes-demo/microservices.yaml > microservices.yaml
 artifacts:
   files:
     - microservices.yaml
