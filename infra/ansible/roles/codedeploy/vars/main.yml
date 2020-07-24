@@ -2,8 +2,8 @@
 aws_ami_name: 'ubuntu/images/hvm-ssd/ubuntu-bionic-18.04'
 aws_ami_owner: '099720109477'
 
-kubectl_source: 'https://amazon-eks.s3-us-west-2.amazonaws.com/1.12.9/2019-06-21/bin/linux/amd64/kubectl'
-iam_authenticator_source: 'https://amazon-eks.s3-us-west-2.amazonaws.com/1.13.7/2019-06-11/bin/linux/amd64/aws-iam-authenticator'
+kubectl_source: 'https://amazon-eks.s3.us-west-2.amazonaws.com/1.15.11/2020-07-08/bin/linux/amd64/kubectl'
+iam_authenticator_source: 'https://amazon-eks.s3.us-west-2.amazonaws.com/1.15.11/2020-07-08/bin/linux/amd64/aws-iam-authenticator'
 codedeploy_source: 'https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install'
 deployment_server_role_name: deployment-server-role
 deployment_server_policy_name: deployment-server-policy
