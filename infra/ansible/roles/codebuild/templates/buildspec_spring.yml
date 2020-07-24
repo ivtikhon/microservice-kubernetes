@@ -14,6 +14,7 @@ artifacts:
     - '*/apache/000-default.conf'
     - '*/apache/index.html'
     - 'microservice-kubernetes-demo/microservices.yaml'
-    # - appspec.yml
+    - appspec.yml
+    - deploy_app.sh
   base-directory: microservice-kubernetes
   discard-paths: no

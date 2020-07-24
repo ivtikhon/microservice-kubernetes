@@ -27,9 +27,9 @@ phases:
   post_build:
     commands:
       - cd ${CODEBUILD_SRC_DIR}
-      - envsubst < microservice-kubernetes-demo/microservices.yaml > microservices.yaml
+      - envsubst < microservice-kubernetes-demo/microservices.yaml > microservices.yml
 artifacts:
   files:
-    - microservices.yaml
-    # - deploy_app.sh
-    # - appspec.yml
+    - microservices.yml
+    - deploy_app.sh
+    - appspec.yml

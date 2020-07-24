@@ -2,4 +2,3 @@
 aws_region: 'us-east-1'
 eks_cluster_name: 'dev_eks'
 eks_cluster_version: "1.15"
-eks_ami_id: ami-0bf37ed07346b3d23
