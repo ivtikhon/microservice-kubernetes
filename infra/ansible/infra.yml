@@ -3,7 +3,7 @@
 # - creates a VPC with one public and two private subnets along with necessary security groups,
 # - deploys an internet (for public subnet) and a NAT (for private subnets) gateways, 
 # - builds an EKS cluster and two worker nodes (in private subnets),
-# - creates an AWS CodePipeline along with CodeBuild projects and CodeDeploy
+# - creates an AWS CodePipeline along with CodeBuild projects and CodeDeploy application
 # - builds a Linux deployment server in the public subnet for CodeDeploy to run deployments
 #
 # The CodePipeline, once created, builds and deploys a microservice application
