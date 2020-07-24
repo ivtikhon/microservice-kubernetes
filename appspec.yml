@@ -1,0 +1,11 @@
+version: 0.0
+os: linux
+hooks:
+  ApplicationStart:
+    - location: deploy_app.sh
+      timeout: 3600
+      runas: ubuntu
+  # ValidateService:
+  #   - location: scripts/validate_app.sh
+  #     timeout: 3600
+  #     runas: ubuntu
