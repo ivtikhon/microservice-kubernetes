@@ -5,9 +5,8 @@ eks_nodegroup_name: 'as-ng'
 eks_role_policies:
   - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
   - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
-eks_node_type: t2.medium
+eks_node_type: t3.medium
 ecr_repository: microservice
 
 aws_auth_configmap: aws-auth-cm.yaml
 deployment_admin_definition: service-account.yml
-storage_class_definition: gp2-storage-class.yml

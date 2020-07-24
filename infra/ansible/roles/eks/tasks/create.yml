@@ -43,19 +43,6 @@
     eks_certificate_authority_data: '{{eks_cluster.certificate_authority.data}}'
     eks_server: '{{eks_cluster.endpoint}}'
 
-- name: Create ECR repository
-  ecs_ecr:
-    name: '{{ecr_repository}}'
-    state: present
-    region: '{{aws_region}}'
-    aws_access_key: '{{aws_access_key}}'
-    aws_secret_key: '{{aws_secret_key}}'
-  register: ecr_repo
-
-- name: ECR URI
-  set_fact:
-    ecr_repository_uri: '{{ecr_repo.repository.repositoryUri}}'
-
 - name: Launch Worker nodes
   cloudformation:
     stack_name: "eks-worker-nodes"
@@ -70,7 +57,7 @@
       NodeAutoScalingGroupDesiredCapacity: 2
       NodeAutoScalingGroupMaxSize: 3
       NodeInstanceType: '{{eks_node_type}}'
-      NodeImageId: '{{eks_ami_id}}'
+      NodeImageIdSSMParam: '/aws/service/eks/optimized-ami/{{eks_cluster_version}}/amazon-linux-2/recommended/image_id'
       NodeVolumeSize: 20
       KeyName: '{{ssh_key_name}}'
       VpcId: '{{vpc_id}}'
