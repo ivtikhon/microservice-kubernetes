@@ -1,4 +1,15 @@
 ---
+# This playbook 
+# - creates a VPC with one public and two private subnets along with necessary security groups,
+# - deploys an internet (for public subnet) and a NAT (for private subnets) gateways, 
+# - builds an EKS cluster and two worker nodes (in private subnets),
+# - creates an AWS CodePipeline along with CodeBuild projects and CodeDeploy
+# - builds a Linux deployment server in the public subnet for CodeDeploy to run deployments
+#
+# The CodePipeline, once created, builds and deploys a microservice application
+# from the Eberhard Wolff's Microservices Book (https://github.com/ewolff/microservice-kubernetes)
+# to the just built EKS cluster
+#
 # Parameters to submit (e.g. as extra-vars):
 #   - aws_access_key
 #   - aws_secret_key
@@ -6,6 +17,8 @@
 #   - git_token
 #   - ssh_private_key_path
 #   - ssh_key_name
+#
+# Developed by Igor Tikhonin in 2020
 
 - name: Create VPC
   hosts: localhost
