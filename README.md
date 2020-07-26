@@ -8,7 +8,10 @@ The Ansible playbook:
 * deploys an internet gateway for the public subnet, and a NAT gateway for the private subnets,
 * builds an EKS cluster and two worker nodes; the worker nodes are located in the private subnets,
 * creates an AWS CodePipeline, AWS CodeBuild projects, and AWS CodeDeploy application and deployment group,
-* builds a Linux deployment server in the public subnet for CodeDeploy to run deployments to EKS
+* builds a Linux deployment server in the public subnet for CodeDeploy to run deployments to EKS,
+* AWS CodePipeline, once created, builds the application, creates container images and stores them to Amazon Elastic Container Registry,
+* repositories for contaner images are created automatically as needed,
+* when container images are ready, AWS CodeDeploy runs deployment to EKS via the Linux deployment server, using a YAML deployment manifest
 ## Architectural diagram
 ![](doc/architectural_diagram.jpg)
 ## How to run
