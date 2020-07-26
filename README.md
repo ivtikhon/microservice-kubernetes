@@ -1,12 +1,14 @@
-# Deployment of a Microservice Application on Kubernetes
+# Deployment of a Microservice Application to Kubernetes
 
-This repo contains Ansible code of a fully automated deployment of a microservice application to Kubernetes. The application is taken from the Eberhard Wolff's [Microservices Book](https://github.com/ewolff/microservice-kubernetes). Amazon's Elastic Kubernetes Service is used as a deployment target. Amazon's CodePipeline builds the application from source code, creates Docker images, and deploys containers to EKS.
+This repo contains Ansible code of a fully automated deployment of a microservice application to Kubernetes. The application is taken from the Eberhard Wolff's [Microservices Book](https://github.com/ewolff/microservice-kubernetes). Amazon Elastic Kubernetes Service is used as a deployment target. AWS CodePipeline builds the application from source code, creates Docker images, and deploys containers to EKS.
 
 ## Description
-The Ansible playbook 
-* creates a VPC in the AWS cloud, which consists of one public and two private subnets,
-* deploys an internet gateway for the public subnet, and a NAT gateway to the private subnets,
-* to be continued...
+The Ansible playbook:
+* creates a VPC, which consists of one public and two private subnets,
+* deploys an internet gateway for the public subnet, and a NAT gateway for the private subnets,
+* builds an EKS cluster and two worker nodes; the worker nodes are located in the private subnets,
+* creates an AWS CodePipeline, AWS CodeBuild projects, and AWS CodeDeploy application and deployment group,
+* builds a Linux deployment server in the public subnet for CodeDeploy to run deployments to EKS
 ## Architectural diagram
 ![](doc/architectural_diagram.jpg)
 ## How to run
