@@ -78,6 +78,6 @@ kubectl get services
 The output should look like this:
 ![](doc/eks_pods.png)
 
-8. Open the application URL (apache external-ip):  
+8. Open the application URL (use the apache service external-ip):  
 
 ![](doc/microservice_app.png)
