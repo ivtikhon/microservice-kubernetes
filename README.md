@@ -1,3 +1,8 @@
+# Microservice Kubernetes
+
+## Architectural diagram
+![](doc/architectural_diagram.jpg)
+## How to run
 ```
 git clone https://github.com/ivtikhon/microservice-kubernetes.git
 apt-get update
