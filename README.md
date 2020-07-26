@@ -22,12 +22,12 @@ The Ansible playbook:
 
 ```bash
 # Define variables
-GITHUB_REPO_URL="your_github_repo"
-ACCESS_KEY="your_aws_access_key"
-SECRET_KEY="your_aws_secret_key"
-GIT_TOKEN="your_github_access_token"
-SSH_PRIVATE_KEY="path_to_your_private_ssh_key"
-SSH_KEY_NAME="name_of_your_ssh_key"
+export GITHUB_REPO_URL="your_github_repo"
+export ACCESS_KEY="your_aws_access_key"
+export SECRET_KEY="your_aws_secret_key"
+export GIT_TOKEN="your_github_access_token"
+export SSH_PRIVATE_KEY="path_to_your_private_ssh_key"
+export SSH_KEY_NAME="name_of_your_ssh_key"
 # Install Ansible
 sudo apt-get update
 sudo apt-get install -y software-properties-common python-pip apt-utils
@@ -36,7 +36,28 @@ sudo apt-get install -y ansible
 pip install boto boto3 awscli
 # Clone git repository (skip this step if you already have a local copy of the repo)
 git clone ${GITHUB_REPO_URL}
-cd $(echo "${GITHUB_REPO_URL##*/} | sed 's/.git$//'"
+cd $(echo "${GITHUB_REPO_URL##*/}" | sed 's/.git$//')
 # Run Ansible playbook
 ansible-playbook -vv -i 'localhost ansible_connection=local,' --extra-vars="git_repo_path='${GITHUB_REPO_URL}' aws_access_key='${ACCESS_KEY}' aws_secret_key='${SECRET_KEY}' git_token='${GIT_TOKEN}' ssh_private_key_path='${SSH_PRIVATE_KEY}' ssh_key_name='${SSH_KEY_NAME}'" infra/ansible/infra.yml
+```
+5. When the playbook finishes (in about 30 min), check that the EKS nodes are accessible (the EKS cluster name is dev_eks):
+```bash
+# Create bin directory (skip this step if you already have this directory)
+mkdir ~/bin
+cd bin
+export PATH=$PATH:${HOME}/bin
+# Obtain kube config and kubectl binary
+aws eks update-kubeconfig --name dev_eks --region us-east-1
+curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.15.11/2020-07-08/bin/linux/amd64/kubectl
+chmod 755 kubectl
+curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.15.11/2020-07-08/bin/linux/amd64/aws-iam-authenticator
+chmod 755 aws-iam-authenticator
+# Check cluster nodes
+kubectl get nodes
+```
+6. Log on the AWS Console and check status of the AWS CodePipeline
+7. When the pipeline finishes, check that the Microservice application is deployed to EKS
+```bash
+kubectl get services
+kubectl get pods
 ```
