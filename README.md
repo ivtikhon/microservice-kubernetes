@@ -15,10 +15,10 @@ The Ansible playbook:
 ## Architectural diagram
 ![](doc/architectural_diagram.png)
 ## How to run
-1. Create your own copy of the current Github repository: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/duplicating-a-repository
+1. Create your own copy of this Github repo: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/duplicating-a-repository
 2. Generate Github access token: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token (select repo)
-3. Obtain your AWS Access key and Secret key: https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html (Programmatic access section)
-4. Create an AWS SSH key pair: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#prepare-key-pair
+3. Obtain your AWS Access key and Secret key: https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html (see Programmatic access section)
+4. Create an AWS SSH key pair: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#prepare-key-pair (choose pem)
 5. Log on your Linux machine and run the Ansible playbook (the following code works on Ubuntu):
 
 ```bash
@@ -28,7 +28,7 @@ export AWS_ACCESS_KEY_ID="your_aws_access_key"
 export AWS_SECRET_ACCESS_KEY="your_aws_secret_key"
 export AWS_DEFAULT_REGION="aws_region_of_your_choice, e.g. us-east-1"
 export GITHUB_ACCESS_TOKEN="your_github_access_token"
-export SSH_PRIVATE_KEY_PATH="path_to_your_private_ssh_key_file, e.g. /home/ubuntu/.ssh/linux_key.pem"
+export SSH_PRIVATE_KEY_PATH="path_to_your_private_ssh_key_file, e.g. ~/.ssh/linux_key.pem"
 export SSH_KEY_NAME="name_of_your_aws_ssh_key_pair, e.g. linux_key"
 # Install Ansible
 sudo apt-get update
