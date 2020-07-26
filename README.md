@@ -68,7 +68,7 @@ Build stage:
 ![](doc/codepipeline_build.png)
   
 Deploy stage:  
-![](doc/codepipeline_build.png)
+![](doc/codepipeline_deploy.png)
 
 7. When the pipeline finishes, check that the Microservice application is deployed to EKS
 ```bash
