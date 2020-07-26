@@ -6,23 +6,37 @@ This repo contains Ansible code of a fully automated deployment of a microservic
 The Ansible playbook:
 * creates a VPC, which consists of one public and two private subnets,
 * deploys an internet gateway for the public subnet, and a NAT gateway for the private subnets,
-* builds an EKS cluster and two worker nodes; the worker nodes are located in the private subnets,
+* builds an EKS cluster and two worker nodes; the worker nodes are built in the private subnets,
 * creates an AWS CodePipeline, AWS CodeBuild projects, and AWS CodeDeploy application and deployment group,
 * builds a Linux deployment server in the public subnet for CodeDeploy to run deployments to EKS,
 * AWS CodePipeline, once created, builds the application, creates container images and stores them to Amazon Elastic Container Registry,
 * repositories for contaner images are created automatically as needed,
 * when container images are ready, AWS CodeDeploy runs deployment to EKS via the Linux deployment server, using a YAML deployment manifest
 ## Architectural diagram
-![](doc/architectural_diagram.jpg)
+![](doc/architectural_diagram.png)
 ## How to run
-```
-git clone https://github.com/ivtikhon/microservice-kubernetes.git
-apt-get update
-apt-get install -y software-properties-common python-pip apt-utils
-apt-add-repository --yes --update ppa:ansible/ansible
-apt-get install -y ansible
-pip install boto boto3 awscli
-cd microservice-kubernetes
+1. Create your own copy of this repository: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/duplicating-a-repository
+2. Generate Github access token: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token (select repo)
+3. Obtain your AWS Access key and Secret key: https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html (Programmatic access section)
+4. Log on your Linux machine and run the Ansible playbook (the following code works on Ubuntu):
 
-ansible-playbook -vv -i 'localhost ansible_connection=local,' --extra-vars="git_repo_path='https://github.com/ivtikhon/microservice-kubernetes.git' aws_access_key='_ACCESS_KEY_' aws_secret_key='_SECRET_KEY_' git_token='_GIT_TOKEN_' ssh_private_key_path='_SSH_KEY_PATH_' ssh_key_name='_SSH_KEY_NAME_'" infra/ansible/infra.yml
+```bash
+# Define variables
+GITHUB_REPO_URL="your_github_repo"
+ACCESS_KEY="your_aws_access_key"
+SECRET_KEY="your_aws_secret_key"
+GIT_TOKEN="your_github_access_token"
+SSH_PRIVATE_KEY="path_to_your_private_ssh_key"
+SSH_KEY_NAME="name_of_your_ssh_key"
+# Install Ansible
+sudo apt-get update
+sudo apt-get install -y software-properties-common python-pip apt-utils
+sudo apt-add-repository --yes --update ppa:ansible/ansible
+sudo apt-get install -y ansible
+pip install boto boto3 awscli
+# Clone git repository (skip this step if you already have a local copy of the repo)
+git clone ${GITHUB_REPO_URL}
+cd $(echo "${GITHUB_REPO_URL##*/} | sed 's/.git$//'"
+# Run Ansible playbook
+ansible-playbook -vv -i 'localhost ansible_connection=local,' --extra-vars="git_repo_path='${GITHUB_REPO_URL}' aws_access_key='${ACCESS_KEY}' aws_secret_key='${SECRET_KEY}' git_token='${GIT_TOKEN}' ssh_private_key_path='${SSH_PRIVATE_KEY}' ssh_key_name='${SSH_KEY_NAME}'" infra/ansible/infra.yml
 ```
