@@ -44,7 +44,7 @@ ansible-playbook -vv -i 'localhost ansible_connection=local,' --extra-vars="git_
 ```bash
 # Create bin directory (skip this step if you already have this directory)
 mkdir ~/bin
-cd bin
+cd ~/bin
 export PATH=$PATH:${HOME}/bin
 # Obtain kube config and kubectl binary
 aws eks update-kubeconfig --name dev_eks --region us-east-1
