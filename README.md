@@ -57,9 +57,27 @@ chmod 755 aws-iam-authenticator
 # Check cluster nodes
 kubectl get nodes
 ```
-6. Log on the AWS Console and check status of the AWS CodePipeline
+  
+The output should look like this:
+![](doc/eks_nodes.png)
+
+
+6. Log on the AWS Console and check status of the AWS CodePipeline (the pipeline name is codepipeline-microservice)  
+
+Build stage:  
+![](doc/codepipeline_build.png)
+  
+Deploy stage:  
+![](doc/codepipeline_build.png)
+
 7. When the pipeline finishes, check that the Microservice application is deployed to EKS
 ```bash
-kubectl get services
 kubectl get pods
+kubectl get services
 ```
+The output should look like this:
+![](doc/eks_pods.png)
+
+8. Open the application URL (apache external-ip):  
+
+![](doc/microservice_app.png)
