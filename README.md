@@ -15,19 +15,21 @@ The Ansible playbook:
 ## Architectural diagram
 ![](doc/architectural_diagram.png)
 ## How to run
-1. Create your own copy of this repository: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/duplicating-a-repository
+1. Create your own copy of the current Github repository: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/duplicating-a-repository
 2. Generate Github access token: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token (select repo)
 3. Obtain your AWS Access key and Secret key: https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html (Programmatic access section)
-4. Log on your Linux machine and run the Ansible playbook (the following code works on Ubuntu):
+4. Create an AWS SSH key pair: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#prepare-key-pair
+5. Log on your Linux machine and run the Ansible playbook (the following code works on Ubuntu):
 
 ```bash
 # Define variables
-export GITHUB_REPO_URL="your_github_repo"
-export ACCESS_KEY="your_aws_access_key"
-export SECRET_KEY="your_aws_secret_key"
-export GIT_TOKEN="your_github_access_token"
-export SSH_PRIVATE_KEY="path_to_your_private_ssh_key"
-export SSH_KEY_NAME="name_of_your_ssh_key"
+export GITHUB_REPO_URL="your_github_repo, e.g. https://github.com/ivtikhon/microservice-kubernetes.git"
+export AWS_ACCESS_KEY_ID="your_aws_access_key"
+export AWS_SECRET_ACCESS_KEY="your_aws_secret_key"
+export AWS_DEFAULT_REGION="aws_region_of_your_choice, e.g. us-east-1"
+export GITHUB_ACCESS_TOKEN="your_github_access_token"
+export SSH_PRIVATE_KEY_PATH="path_to_your_private_ssh_key_file, e.g. /home/ubuntu/.ssh/linux_key.pem"
+export SSH_KEY_NAME="name_of_your_aws_ssh_key_pair, e.g. linux_key"
 # Install Ansible
 sudo apt-get update
 sudo apt-get install -y software-properties-common python-pip apt-utils
@@ -38,7 +40,7 @@ pip install boto boto3 awscli
 git clone ${GITHUB_REPO_URL}
 cd $(echo "${GITHUB_REPO_URL##*/}" | sed 's/.git$//')
 # Run Ansible playbook
-ansible-playbook -vv -i 'localhost ansible_connection=local,' --extra-vars="git_repo_path='${GITHUB_REPO_URL}' aws_access_key='${ACCESS_KEY}' aws_secret_key='${SECRET_KEY}' git_token='${GIT_TOKEN}' ssh_private_key_path='${SSH_PRIVATE_KEY}' ssh_key_name='${SSH_KEY_NAME}'" infra/ansible/infra.yml
+ansible-playbook -vv -i 'localhost ansible_connection=local,' --extra-vars="git_repo_path='${GITHUB_REPO_URL}' aws_access_key='${AWS_ACCESS_KEY_ID}' aws_secret_key='${AWS_SECRET_ACCESS_KEY}' git_token='${GITHUB_ACCESS_TOKEN}' ssh_private_key_path='${SSH_PRIVATE_KEY_PATH}' ssh_key_name='${SSH_KEY_NAME}' aws_region='${AWS_DEFAULT_REGION}'" infra/ansible/infra.yml
 ```
 5. When the playbook finishes (in about 30 min), check that the EKS nodes are accessible (the EKS cluster name is dev_eks):
 ```bash
