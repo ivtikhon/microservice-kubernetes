@@ -11,7 +11,7 @@
   register: codebuild_role
 
 - name: Get the current caller identity facts
-  aws_caller_facts:
+  aws_caller_info:
     aws_access_key: '{{aws_access_key}}'
     aws_secret_key: '{{aws_secret_key}}'
   register: caller_facts

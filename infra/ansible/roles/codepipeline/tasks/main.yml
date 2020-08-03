@@ -27,7 +27,7 @@
   when: codepipeline_policy.changed or codepipeline_role.changed
 
 - name: Get the current caller identity facts
-  aws_caller_facts:
+  aws_caller_info:
     aws_access_key: '{{aws_access_key}}'
     aws_secret_key: '{{aws_secret_key}}'
   register: caller_facts
