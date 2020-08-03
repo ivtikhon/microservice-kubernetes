@@ -79,8 +79,7 @@
 - name: Create CodeBuild project to build Docker containers
   hosts: localhost
   vars:
-    # ecr_repository_uri: "{{hostvars['localhost']['ecr_repository_uri']}}"
-    container_registry: 718067358621.dkr.ecr.us-east-1.amazonaws.com
+    container_registry: "{{hostvars['localhost']['container_registry']}}"
     aws_account_id: "{{hostvars['localhost']['aws_account_id']}}"
     codebuild_project_name: 'microservice-container'
     codebuild_project_description: 'Build Microservice Demo containers'

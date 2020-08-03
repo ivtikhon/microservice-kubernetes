@@ -70,3 +70,13 @@
 - name: EKS Worker nodes role
   set_fact:
     eks_node_role_arn: '{{eks_nodes.stack_outputs.NodeInstanceRole}}'
+
+- name: Get the current caller identity facts
+  aws_caller_info:
+    aws_access_key: '{{aws_access_key}}'
+    aws_secret_key: '{{aws_secret_key}}'
+  register: caller_facts
+
+- name: Container registry
+  set_fact:
+    container_registry: '{{caller_facts.account}}.dkr.ecr.{{aws_region}}.amazonaws.com'
